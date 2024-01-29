@@ -3,14 +3,9 @@ name: Lint
 on:
   # Trigger the workflow on push or pull request,
   # but only for the main branch
-  push:
-    branches:
-      - main
-  #pull_request:
-  #  branches:
-  #    - main
-  #needed for forked
+  workflow_dispatch:
   pull_request_target:
+  push:
     branches:
       - main
 
@@ -19,8 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  run-linters:
-    name: Run linters
+  linters:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,6 +32,7 @@ jobs:
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
+          continue_on_error: false
           eslint: true
           eslint_dir: tests/cypress
           eslint_extensions: ts
