@@ -36,4 +36,5 @@ jobs:
           eslint: true
           eslint_dir: tests/cypress
           eslint_extensions: ts
+          eslint_auto_fix: false
 
