@@ -180,7 +180,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: cypress-screenshots-basics-${{ inputs.cluster_name }}
-          path: tests/cypress/latest/screenshots
+          path: tests/cypress/screenshots
           retention-days: 7
           if-no-files-found: ignore
       - name: Upload Cypress videos (Basics)
@@ -189,7 +189,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: cypress-videos-basics-${{ inputs.cluster_name }}
-          path: tests/cypress/latest/videos
+          path: tests/cypress/videos
           retention-days: 7
       - name: Add summary
         if: ${{ always() }}

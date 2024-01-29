@@ -2,7 +2,7 @@
 
 set -evx
 
-pushd cypress/latest
+pushd cypress
 
 # Needed to install Cypress plugins
 npm install
