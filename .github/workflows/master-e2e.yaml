@@ -39,8 +39,8 @@ on:
         type: string
       runner_template:
         description: Runner template to use
-        # TODO: Create new runner template for fleet-e2e
-        default: hosted-prov-e2e-ci-runner-spot-n2-highmem-16-gl-template-v1
+        # Another template available on GCP: fleet-qa-e2e-ci-runner-spot-leap-15-4-x86-64-template-v1
+        default: fleet-qa-e2e-ci-runner-spot-leap-15-5-x86-64-template-v1
         type: string
       test_description:
         description: Short description of the test
@@ -70,8 +70,10 @@ jobs:
         id: generator
         run: |
           UUID=$(uuidgen)
-          echo "uuid=${UUID}" >> ${GITHUB_OUTPUT}
-          echo "runner=capi-ci-${UUID}" >> ${GITHUB_OUTPUT}
+          GH_REPO_FULL=${{ github.repository }}
+          GH_REPO=${GH_REPO_FULL#*/}
+          echo "uuid=${UUID//-}" >> ${GITHUB_OUTPUT}
+          echo "runner=${GH_REPO//\//-}-ci-${UUID//-}" >> ${GITHUB_OUTPUT}
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
@@ -83,10 +85,12 @@ jobs:
           gcloud compute instances create ${{ steps.generator.outputs.runner }} \
             --source-instance-template ${{ inputs.runner_template }} \
             --zone ${{ inputs.zone }}
-      - name: Create PAT token secret
+      - name: Create PAT token secrets
         run: |
           echo -n ${{ secrets.pat_token }} \
             | gcloud secrets create PAT_TOKEN_${{ steps.generator.outputs.uuid }} --data-file=-
+          echo -n ${{ github.repository }} \
+            | gcloud secrets create GH_REPO_${{ steps.generator.outputs.uuid }} --data-file=-
       - name: Get public dns name in GCP
         id: dns
         run: |
@@ -219,9 +223,10 @@ jobs:
           credentials_json: ${{ secrets.credentials }}
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
-      - name: Delete PAT token secret
+      - name: Delete PAT token secrets
         run: |
-          gcloud --quiet secrets delete PAT_TOKEN_${{ needs.create-runner.outputs.uuid }}
+          gcloud --quiet secrets delete PAT_TOKEN_${{ needs.create-runner.outputs.uuid }} || true
+          gcloud --quiet secrets delete GH_REPO_${{ needs.create-runner.outputs.uuid }} || true
       - name: Delete runner
         run: |
           gcloud --quiet compute instances delete ${{ needs.create-runner.outputs.runner }} \
