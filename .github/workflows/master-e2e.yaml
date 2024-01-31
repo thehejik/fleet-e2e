@@ -137,12 +137,24 @@ jobs:
       RANCHER_VERSION: ${{ inputs.rancher_version }}
       TIMEOUT_SCALE: 3
     steps:
+      - name: Adding /usr/local/bin into PATH
+        run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
+      - name: Install latest helm-3 on runner
+        run: |
+          echo "::group::Install git and helm-3"
+          sudo zypper -n install --no-recommends git
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          echo "::endgroup::"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v3
         with:
           go-version-file: tests/go.mod
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
       - name: Install preriquisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
