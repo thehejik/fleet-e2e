@@ -140,7 +140,10 @@ jobs:
       - name: Adding /usr/local/bin into PATH
         run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
       - name: Install latest helm-3 on runner
-        run: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+        run: |
+          # helm needs git for plugins
+          sudo zypper -n install --no-recommends git
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
