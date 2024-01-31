@@ -94,22 +94,13 @@ jobs:
       - name: Get public dns name in GCP
         id: dns
         run: |
-          # Do a timed out loop here, as gcloud can sometimes fail
-          typeset -i i=0
-          while true; do
-            # Get public IP
-            PUBLIC_IP=$(gcloud compute instances list 2> /dev/null \
-                        | awk '/${{ steps.generator.outputs.runner }}/ {print $6}')
-            # Exit if we reach the timeout or if IP is set
-            if (( ++i > 10 )) || [[ -n "${PUBLIC_IP}" ]]; then
-              break
-            fi
-            # Wait a little before retrying
+          for ((i=0; i<10; i++)); do
+            PUBLIC_IP=$(gcloud compute instances list --format="value(EXTERNAL_IP)" \
+              --filter="name=${{ steps.generator.outputs.runner }}" 2> /dev/null)
+            [[ -n "${PUBLIC_IP}" ]] && break
             sleep 2
           done
-          # Get the public DNS
-          PUBLIC_DNS=$(host -l ${PUBLIC_IP} 2> /dev/null \
-                       | awk '{sub(/\.$/, ""); print $5}')
+          PUBLIC_DNS=$(dig -x ${PUBLIC_IP} +short 2> /dev/null | sed 's/\.$//')
           echo "public_dns=${PUBLIC_DNS}" >> ${GITHUB_OUTPUT}
           # Raise an error if either IP and/or DNS are empty
           if [[ -z "${PUBLIC_IP}" || -z "${PUBLIC_DNS}" ]]; then
@@ -222,7 +213,7 @@ jobs:
           echo "K3s on Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           echo "K8s version deployed on the cluster(s): ${{ inputs.k8s_version_to_provision }}" >> ${GITHUB_STEP_SUMMARY}
   delete-runner:
-    if: ${{ always() && needs.create-runner.result == 'success' && inputs.destroy_runner == true }}
+    if: ${{ always() && inputs.destroy_runner == true }}
     needs: [create-runner, e2e]
     runs-on: ubuntu-latest
     steps:
