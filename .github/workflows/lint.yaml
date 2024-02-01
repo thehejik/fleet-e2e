@@ -22,8 +22,6 @@ jobs:
         with:
           args: -v
           working-directory: tests
-
-jobs:
   cypress-lint:
     runs-on: ubuntu-latest
     env:
