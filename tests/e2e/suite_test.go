@@ -86,3 +86,4 @@ var _ = BeforeSuite(func() {
 		rancherHeadVersion = s[2]
 	}
 })
+

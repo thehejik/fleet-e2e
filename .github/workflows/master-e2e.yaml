@@ -39,8 +39,8 @@ on:
         type: string
       runner_template:
         description: Runner template to use
-        # TODO: Create new runner template for fleet-e2e
-        default: hosted-prov-e2e-ci-runner-spot-n2-highmem-16-gl-template-v1
+        # Another template available on GCP: fleet-qa-e2e-ci-runner-spot-leap-15-4-x86-64-template-v1
+        default: fleet-qa-e2e-ci-runner-spot-leap-15-5-x86-64-template-v1
         type: string
       test_description:
         description: Short description of the test
@@ -70,8 +70,10 @@ jobs:
         id: generator
         run: |
           UUID=$(uuidgen)
-          echo "uuid=${UUID}" >> ${GITHUB_OUTPUT}
-          echo "runner=capi-ci-${UUID}" >> ${GITHUB_OUTPUT}
+          GH_REPO_FULL=${{ github.repository }}
+          GH_REPO=${GH_REPO_FULL#*/}
+          echo "uuid=${UUID//-}" >> ${GITHUB_OUTPUT}
+          echo "runner=${GH_REPO//\//-}-ci-${UUID//-}" >> ${GITHUB_OUTPUT}
       - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
@@ -83,29 +85,22 @@ jobs:
           gcloud compute instances create ${{ steps.generator.outputs.runner }} \
             --source-instance-template ${{ inputs.runner_template }} \
             --zone ${{ inputs.zone }}
-      - name: Create PAT token secret
+      - name: Create PAT token secrets
         run: |
           echo -n ${{ secrets.pat_token }} \
             | gcloud secrets create PAT_TOKEN_${{ steps.generator.outputs.uuid }} --data-file=-
+          echo -n ${{ github.repository }} \
+            | gcloud secrets create GH_REPO_${{ steps.generator.outputs.uuid }} --data-file=-
       - name: Get public dns name in GCP
         id: dns
         run: |
-          # Do a timed out loop here, as gcloud can sometimes fail
-          typeset -i i=0
-          while true; do
-            # Get public IP
-            PUBLIC_IP=$(gcloud compute instances list 2> /dev/null \
-                        | awk '/${{ steps.generator.outputs.runner }}/ {print $6}')
-            # Exit if we reach the timeout or if IP is set
-            if (( ++i > 10 )) || [[ -n "${PUBLIC_IP}" ]]; then
-              break
-            fi
-            # Wait a little before retrying
+          for ((i=0; i<10; i++)); do
+            PUBLIC_IP=$(gcloud compute instances list --format="value(EXTERNAL_IP)" \
+              --filter="name=${{ steps.generator.outputs.runner }}" 2> /dev/null)
+            [[ -n "${PUBLIC_IP}" ]] && break
             sleep 2
           done
-          # Get the public DNS
-          PUBLIC_DNS=$(host -l ${PUBLIC_IP} 2> /dev/null \
-                       | awk '{sub(/\.$/, ""); print $5}')
+          PUBLIC_DNS=$(dig -x ${PUBLIC_IP} +short 2> /dev/null | sed 's/\.$//')
           echo "public_dns=${PUBLIC_DNS}" >> ${GITHUB_OUTPUT}
           # Raise an error if either IP and/or DNS are empty
           if [[ -z "${PUBLIC_IP}" || -z "${PUBLIC_DNS}" ]]; then
@@ -133,12 +128,24 @@ jobs:
       RANCHER_VERSION: ${{ inputs.rancher_version }}
       TIMEOUT_SCALE: 3
     steps:
+      - name: Adding /usr/local/bin into PATH
+        run: echo "/usr/local/bin/" >> ${GITHUB_PATH}
+      - name: Install latest helm-3 on runner
+        run: |
+          echo "::group::Install git and helm-3"
+          sudo zypper -n install --no-recommends git
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          echo "::endgroup::"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install Go
         uses: actions/setup-go@v3
         with:
           go-version-file: tests/go.mod
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
       - name: Install preriquisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
@@ -206,7 +213,7 @@ jobs:
           echo "K3s on Rancher Manager: ${{ env.INSTALL_K3S_VERSION }}" >> ${GITHUB_STEP_SUMMARY}
           echo "K8s version deployed on the cluster(s): ${{ inputs.k8s_version_to_provision }}" >> ${GITHUB_STEP_SUMMARY}
   delete-runner:
-    if: ${{ always() && needs.create-runner.result == 'success' && inputs.destroy_runner == true }}
+    if: ${{ always() && inputs.destroy_runner == true }}
     needs: [create-runner, e2e]
     runs-on: ubuntu-latest
     steps:
@@ -219,9 +226,10 @@ jobs:
           credentials_json: ${{ secrets.credentials }}
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v1
-      - name: Delete PAT token secret
+      - name: Delete PAT token secrets
         run: |
-          gcloud --quiet secrets delete PAT_TOKEN_${{ needs.create-runner.outputs.uuid }}
+          gcloud --quiet secrets delete PAT_TOKEN_${{ needs.create-runner.outputs.uuid }} || true
+          gcloud --quiet secrets delete GH_REPO_${{ needs.create-runner.outputs.uuid }} || true
       - name: Delete runner
         run: |
           gcloud --quiet compute instances delete ${{ needs.create-runner.outputs.runner }} \

@@ -24,3 +24,4 @@ describe('First login on Rancher', () => {
     })
   );
 })
+
