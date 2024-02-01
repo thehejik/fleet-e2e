@@ -146,7 +146,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 16
-      - name: Install preriquisite components
+      - name: Install prerequisite components
         env:
           PUBLIC_DNS: ${{ needs.create-runner.outputs.public_dns }}
           PUBLIC_DOMAIN: bc.googleusercontent.com
@@ -202,7 +202,7 @@ jobs:
         if: ${{ always() }}
         run: |
           # Add summary
-          echo "## General informations" >> ${GITHUB_STEP_SUMMARY}
+          echo "## General information" >> ${GITHUB_STEP_SUMMARY}
           echo -e "***${{ inputs.test_description }}***\n" >> ${GITHUB_STEP_SUMMARY}
           echo "Type of cluster deployed: ${CLUSTER_TYPE:-normal}" >> ${GITHUB_STEP_SUMMARY}
           echo "### Rancher Manager" >> ${GITHUB_STEP_SUMMARY}
