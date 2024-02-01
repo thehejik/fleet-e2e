@@ -22,6 +22,8 @@ jobs:
         with:
           args: -v
           working-directory: tests
+
+jobs:
   cypress-lint:
     runs-on: ubuntu-latest
     env:
@@ -44,4 +46,3 @@ jobs:
         with:
           extensions: 'js,ts'
           working-directory: ${{ env.WORKING_DIR }}
-
