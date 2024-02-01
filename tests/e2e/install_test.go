@@ -65,7 +65,9 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			// Set command and arguments
 			installCmd := exec.Command("sh", fileName)
-			installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server")
+			// installCmd.Env = append(os.Environ(), "INSTALL_K3S_EXEC=--disable metrics-server")
+			installCmd.Env = append(os.Environ(), "INSTALL_K3S_VERSION="+os.Getenv("INSTALL_K3S_EXEC"))
+			installCmd.Env = append(os.Environ(), "K3S_KUBECONFIG_MODE="+os.Getenv("K3S_KUBECONFIG_MODE"))
 
 			// Retry in case of (sporadic) failure...
 			count := 1
