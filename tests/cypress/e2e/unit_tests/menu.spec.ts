@@ -32,8 +32,9 @@ describe('Menu testing', () => {
 
       // Click on the Continuous Delivery's icon
       cypressLib.accesMenu('Continuous Delivery');
-      cypressLib.accesMenu('Git Repos');
+      cypressLib.accesMenu('Git Repos);
     })
   );
 });
+
 

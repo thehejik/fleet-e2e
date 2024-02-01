@@ -29,7 +29,7 @@ import (
 
 func rolloutDeployment(ns, d string) {
 	// NOTE: 1st or 2nd rollout command can sporadically fail, so better to use Eventually here
-	Eventually(func() string {
+	Eventually(func() string 
 		status, _ := kubectl.Run("rollout", "restart", "deployment/"+d,
 			"--namespace", ns)
 		return status
@@ -38,7 +38,7 @@ func rolloutDeployment(ns, d string) {
 	// Wait for deployment to be restarted
 	Eventually(func() string {
 		status, _ := kubectl.Run("rollout", "status", "deployment/"+d,
-			"--namespace", ns)
+			"--namespace", ns
 		return status
 	}, tools.SetTimeout(2*time.Minute), 30*time.Second).Should(ContainSubstring("successfully rolled out"))
 }
@@ -200,4 +200,5 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		})
 	})
 })
+
 
