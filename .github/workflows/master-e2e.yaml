@@ -51,7 +51,6 @@ on:
         description: K3s upstream cluster version where to install Rancher
         default: v1.26.10+k3s2
         type: string
-        required: true
       zone:
         description: GCP zone to host the runner
         # TODO: Modify zone for fleet-e2e
