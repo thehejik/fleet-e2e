@@ -15,7 +15,7 @@ on:
         required: true
   schedule:
     # - cron: '0 4 * * *'
-    - cron: '45 1 * * *'
+    - cron: '15 14 * * *'
 
 jobs:
   ui:
