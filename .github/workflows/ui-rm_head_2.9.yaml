@@ -19,8 +19,7 @@ on:
         type: string
         required: true
   schedule:
-    # - cron: '0 4 * * *'
-    - cron: '*/15 * * * *'
+    - cron: '0 4 * * *'
 
 jobs:
   ui:
@@ -33,8 +32,5 @@ jobs:
       test_description: "CI/Manual - UI - Deployment test with Standard K3s"
       cluster_name: cluster-k3s
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
-      # 'k8s_version_to_provision' will be passed to Cypress tests
-      k8s_version_to_provision: ${{ inputs.upstream_cluster_version }}
-      # 'upstream_cluster_version' contains K8s version which will be used to deploy cluster.
       upstream_cluster_version: ${{ inputs.upstream_cluster_version }}
       rancher_version: ${{ inputs.rancher_version }}
