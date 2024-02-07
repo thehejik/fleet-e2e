@@ -18,8 +18,8 @@ on:
         default: v1.26.10+k3s2
         type: string
         required: true
-  schedule:
-    - cron: '0 4 * * *'
+  # schedule:
+    # - cron: '0 4 * * *'
 
 jobs:
   ui:
