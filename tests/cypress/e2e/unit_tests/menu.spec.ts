@@ -35,5 +35,6 @@ describe('Menu testing', () => {
       cypressLib.accesMenu('Git Repos);
     })
   );
+
 });
 
