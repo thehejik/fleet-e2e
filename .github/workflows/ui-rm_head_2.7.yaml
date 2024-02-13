@@ -2,11 +2,6 @@
 name: UI-RM_head_2.7
 
 on:
-  push:
-    branches: 
-      - main
-    paths-ignore:
-      - 'README.md'
   workflow_dispatch:
     inputs:
       destroy_runner:
