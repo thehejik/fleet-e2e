@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       destroy_runner:
-        description: Destroy the auto-generated self-hosted runner
+        description: Destroy the auto-generated self-hosted runner 
         default: true
         type: boolean
       rancher_version:
