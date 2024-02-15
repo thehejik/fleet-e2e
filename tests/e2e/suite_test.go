@@ -35,8 +35,8 @@ const (
 )
 
 var (
-	arch string
-	clusterName string
+	arch               string
+	clusterName        string
 	rancherHostname    string
 	k8sUpstreamVersion string
 	rancherChannel     string
@@ -75,8 +75,12 @@ var _ = BeforeSuite(func() {
 	// Extract Rancher Manager channel/version to install
 	if rancherVersion != "" {
 		s := strings.Split(rancherVersion, "/")
-		rancherChannel = s[0]
-		rancherVersion = s[1]
-		rancherHeadVersion = s[2]
+		// Always use "rancher-latest" as other values make no sense here
+		rancherChannel = "latest"
+		rancherVersion = s[0]
+		rancherHeadVersion = ""
+		if len(s) > 1 {
+			rancherHeadVersion = s[1]
+		}
 	}
 })

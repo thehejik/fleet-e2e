@@ -9,8 +9,8 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher Manager channel/version/head_version to use for installation
-        default: latest/devel/2.7
+        description: Rancher version as 'devel/2.7' or '2.8.2[-rc3]'
+        default: devel/2.7
         type: string
         required: true
       upstream_cluster_version:
@@ -34,4 +34,4 @@ jobs:
       # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY CRON
       destroy_runner: ${{ github.event_name == 'schedule' && true || inputs.destroy_runner }}
       upstream_cluster_version: ${{ inputs.upstream_cluster_version || 'v1.26.10+k3s2' }}
-      rancher_version: ${{ inputs.rancher_version || 'latest/devel/2.7' }}
+      rancher_version: ${{ inputs.rancher_version || 'devel/2.7' }}
