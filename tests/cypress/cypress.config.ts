@@ -6,6 +6,8 @@ export default defineConfig({
   viewportWidth: 1314,
   viewportHeight: 954,
   defaultCommandTimeout: 10000,
+  video: true,
+  videoCompression: true,
   reporter: 'cypress-qase-reporter',
   reporterOptions: {
     'apiToken': qaseAPIToken,
@@ -19,7 +21,6 @@ export default defineConfig({
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       return require('./plugins/index.ts')(on, config)
     },
-    experimentalSessionAndOrigin: true,
     supportFile: './support/e2e.ts',
     fixturesFolder: './fixtures',
     screenshotsFolder: './screenshots',
