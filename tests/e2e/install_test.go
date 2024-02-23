@@ -156,13 +156,15 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 		By("Waiting for fleet", func() {
 			// This is performed after 2 min sleep from previous step
 			// Wait unit the command return something
+			count := 1
 			Eventually(func() error {
 				out, err := kubectl.Run("get", "pods",
 					"--namespace", "cattle-fleet-local-system",
 					"-l", "app=fleet-agent",
-					"-o", "yaml",
+					"-o", "jsonpath={.items[*].spec.containers[*].image}",
 				)
-				GinkgoWriter.Printf("Waiting for fleet-agent, stdout is: %s\n", out)
+				GinkgoWriter.Printf("Waiting for fleet-agent loop %d:\n%s\n", count, out)
+				count++
 				return err
 			}, tools.SetTimeout(2*time.Minute), 5*time.Second).Should(Not(HaveOccurred()))
 
