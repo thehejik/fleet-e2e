@@ -39,7 +39,6 @@ on:
         type: boolean
       qase_run_id:
         description: Case run ID where the results will be reported
-        default: auto
         type: string
       rancher_version:
         description: Rancher Manager channel/version/head_version to use for installation
@@ -139,31 +138,38 @@ jobs:
       - name: Create/Export Qase Run
         id: qase
         run: |
-          if ${{ inputs.qase_run_id == 'auto' }}; then
-            # Define and export URL of GH test run in Qase run description
-            GH_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            QASE_DESC="${{ inputs.test_description }} (${GH_RUN_URL})"
-            export QASE_RUN_DESCRIPTION="${QASE_DESC}"
+          case ${{ inputs.qase_run_id }} in
+            'auto')
+              # Define and export URL of GH test run in Qase run description
+              GH_RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+              QASE_DESC="${{ inputs.test_description }} (${GH_RUN_URL})"
+              export QASE_RUN_DESCRIPTION="${QASE_DESC}"
 
-            # Define and export the Qase run name, as it cannot be done
-            # in 'env:' because GITHUB_WORKFLOW is a shell variable
-            # Export them also to be used locally
-            export QASE_RUN_NAME="${GITHUB_WORKFLOW}"
+              # Define and export the Qase run name, as it cannot be done
+              # in 'env:' because GITHUB_WORKFLOW is a shell variable
+              # Export them also to be used locally
+              export QASE_RUN_NAME="${GITHUB_WORKFLOW}"
 
-            # Create a Qase run, get its ID
-            ID=$(cd tests && make create-qase-run)
+              # Create a Qase run, get its ID
+              ID=$(cd tests && make create-qase-run)
             
-            # Export outputs for future use
-            echo "qase_run_description=${QASE_DESC}" >> ${GITHUB_OUTPUT}
-            echo "qase_run_id=${ID}" >> ${GITHUB_OUTPUT}
-            echo "qase_run_name=${GITHUB_WORKFLOW}" >> ${GITHUB_OUTPUT}
+              # Export outputs for future use
+              echo "qase_run_description=${QASE_DESC}" >> ${GITHUB_OUTPUT}
+              echo "qase_run_id=${ID}" >> ${GITHUB_OUTPUT}
+              echo "qase_run_name=${GITHUB_WORKFLOW}" >> ${GITHUB_OUTPUT}
 
-            # Just an info for debugging purposes
-            echo -e "Exported values:\nQASE_RUN_ID=${ID}\nQASE_RUN_DESCRIPTION=${QASE_DESC}\nQASE_RUN_NAME=${GITHUB_WORKFLOW}"
-          elif ${{ inputs.qase_run_id != '' }}; then
-            # If the run ID has been specified
-            echo "qase_run_id=${{ inputs.qase_run_id }}" >> ${GITHUB_OUTPUT}
-          fi
+              # Just an info for debugging purposes
+              echo -e "Exported values:\nQASE_RUN_ID=${ID}\nQASE_RUN_DESCRIPTION=${QASE_DESC}\nQASE_RUN_NAME=${GITHUB_WORKFLOW}"
+              ;;
+            'none')
+              echo "qase_run_id=" >> ${GITHUB_OUTPUT}
+              echo "### Test not reported in QASE!" >> ${GITHUB_STEP_SUMMARY}
+              ;;
+            [0-9]*)
+              # If the run ID has been specified
+              echo "qase_run_id=${{ inputs.qase_run_id }}" >> ${GITHUB_OUTPUT}
+              ;;
+          esac
 
   e2e:
     needs: [create-runner, pre-qase]
@@ -235,7 +241,14 @@ jobs:
           SPEC: |
             /workdir/e2e/unit_tests/first_login_rancher.spec.ts
             /workdir/e2e/unit_tests/p0_fleet.spec.ts
-        run: cd tests && make start-cypress-tests
+        run: |
+          if ${{ inputs.qase_run_id == 'none' }}; then
+            # Unset default QASE_* variables when reporting is disabled
+            unset QASE_REPORT
+            unset QASE_API_TOKEN
+            # QASE_RUN_ID is empty string already
+          fi
+          cd tests && make start-cypress-tests
       - name: Upload Cypress screenshots (Basics)
         if: failure() 
         uses: actions/upload-artifact@v3

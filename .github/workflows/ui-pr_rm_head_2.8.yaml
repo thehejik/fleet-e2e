@@ -1,0 +1,33 @@
+# This workflow calls the master E2E workflow with custom variables
+name: UI-Pull-Request_RM_head_2.8
+
+on:
+  pull_request:
+    branches: [ main ]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  ui:
+    uses: ./.github/workflows/master-e2e.yaml
+    secrets:
+      credentials: ${{ secrets.GCP_CREDENTIALS }}
+      pat_token: ${{ secrets.SELF_HOSTED_RUNNER_PAT_TOKEN }}
+      rancher_password: ${{ secrets.RANCHER_PASSWORD }}
+      gitlab_private_user: ${{ secrets.GITLAB_PRIVATE_USER }}
+      gitlab_private_pwd: ${{ secrets.GITLAB_PRIVATE_PWD }}
+      qase_api_token: ${{ secrets.QASE_API_TOKEN }}
+    with:
+      test_description: "CI test for PR#${{ github.event.pull_request.number }} with K3s"
+      cluster_name: cluster-k3s
+      # WARNING, VALUES BELOW ARE HARDCODED FOR RUNS SCHEDULED BY PULL_REQUEST EVENT
+      destroy_runner: true
+      upstream_cluster_version: 'v1.27.10+k3s2'
+      rancher_version: 'devel/2.8'
+      # If qase_run_id is none the run is getting deleted in QASE
+      qase_run_id: 'none'
