@@ -160,9 +160,8 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				out, err := kubectl.Run("get", "pods",
 					"--namespace", "cattle-fleet-local-system",
 					"-l", "app=fleet-agent",
-					"-o", "jsonpath={.items[*].spec.containers[*].image}",
 				)
-				GinkgoWriter.Printf("Waiting for fleet-agent image name, loop %d:\n%s\n", count, out)
+				GinkgoWriter.Printf("Waiting for fleet-agent pod, loop %d:\n%s\n", count, out)
 				count++
 				return err
 			}, tools.SetTimeout(2*time.Minute), 5*time.Second).Should(Not(HaveOccurred()))
