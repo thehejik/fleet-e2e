@@ -15,6 +15,7 @@ limitations under the License.
 // In this file you can write your custom commands and overwrite existing commands.
 
 import 'cypress-file-upload';
+import * as cypressLib from '@rancher-ecp-qa/cypress-library';
 
 // Generic commands
 
@@ -26,15 +27,36 @@ Cypress.Commands.add('addPathOnGitRepoCreate', (path) => {
   cy.get('input[placeholder="e.g. /directory/in/your/repo"]').type(path);
 })
 
+Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateKey) => {
+  cy.contains('Git Authentication').click()
+  // Select the Git auth method
+  cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
+
+  if (gitAuthType === 'http') {
+    cy.typeValue('Username', userOrPublicKey);
+    cy.typeValue('Password', pwdOrPrivateKey);
+  }
+  else if (gitAuthType === 'ssh') {
+    // Ugly implementation needed because 'typeValue' does not work here
+    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey);
+    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey);
+  }
+});
+
+
 // Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', (repoName, repoUrl, branch, path) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey }) => {
   cy.clickButton('Add Repository');
+  cy.contains('Git Repo:').should('be.visible');
   cy.typeValue('Name', repoName);
   cy.typeValue('Repository URL', repoUrl);
   cy.typeValue('Branch Name', branch);
-  // Path is not required wwhen git repo contains 1 application folder only.
-  if (path !== null) {
+  // Path is not required when git repo contains 1 application folder only.
+  if (path) {
     cy.addPathOnGitRepoCreate(path);
+  }
+  if (gitAuthType) {
+    cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
   cy.clickButton('Next');
 })
@@ -57,10 +79,13 @@ Cypress.Commands.add('open3dotsMenu', (name, selection) => {
 // Verify textvalues in table giving the row number
 // More items can be added with new ".and"
 Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2) => {
+  // Adding small wait to give time for things to settle a bit
+  // Could not find a better way to wait, but can be improved
+  cy.wait(1000)
   // Ensure table is loaded and visible
-  cy.contains('tr.main-row[data-testid="sortable-table-0-row"').should('not.be.empty', { timeout: 25000 });
+  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
   cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-${rowNumber}-row"]`)
-    .children({ timeout: 180000 })
+    .children({ timeout: 300000 })
     .should('contain', expectedText1 )
     .should('contain', expectedText2 ); // TODO: refactor this so it is not mandatory value
 });
@@ -74,6 +99,19 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
+
+// Go to specific Sub Menu from Access Menu
+Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
+     cypressLib.burgerMenuToggle();
+     cypressLib.accesMenu(firstAccessMenu);
+     cypressLib.accesMenu(secondAccessMenu);
+});
+
+// Fleet namespace toggle
+Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
+  cy.contains('fleet-').click();
+  cy.contains(toggleOption).should('be.visible').click();
+});
 
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
