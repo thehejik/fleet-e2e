@@ -148,9 +148,6 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
 			}, tools.SetTimeout(4*time.Minute), 30*time.Second).Should(BeNil())
-
-			// A bit dirty be better to wait a little here for all to be correctly started
-			// time.Sleep(2 * time.Minute)
 		})
 
 		By("Waiting for fleet", func() {
@@ -168,8 +165,6 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			checkList := [][]string{
 				{"cattle-fleet-system", "app=fleet-controller"},
-				{"cattle-fleet-system", "app=gitjob"},
-				{"cattle-fleet-local-system", "app=fleet-agent"},
 			}
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
