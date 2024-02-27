@@ -2,15 +2,6 @@
 name: UI-RM_head_2.8
 
 on:
-  pull_request:
-    branches: [ main ]
-    types: 
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
-    paths-ignore:
-      - 'README.md'
   workflow_dispatch:
     inputs:
       qase_run_id:
