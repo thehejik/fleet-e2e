@@ -19,4 +19,16 @@ describe('First login on Rancher', () => {
     it('Log in and accept terms and conditions', () => {
     cypressLib.firstLogin();
     })
+
+    it('Check ready state of local cluster after Rancher login', () => {
+        cy.login();
+        cy.visit('/');
+        cypressLib.burgerMenuToggle();
+        cypressLib.accesMenu('Continuous Delivery');
+        cy.contains('Dashboard').should('be.visible')
+        cypressLib.accesMenu('Clusters');
+        cy.fleetNamespaceToggle('fleet-local')
+        cy.verifyTableRow(0, 'Active', ' ')
+        cy.get("td[data-testid='sortable-cell-0-2']", { timeout: 300000 }).should('not.contain', '0')
+    })
 })
