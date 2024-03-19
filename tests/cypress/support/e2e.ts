@@ -29,6 +29,8 @@ declare global {
       nameSpaceMenuToggle(namespaceName: string): Chainable<Element>;
       accesMenuSelection(firstAccessMenu: string, secondAccessMenu?: string): Chainable<Element>;
       deleteAll(): Chainable<Element>;
+      deleteAllFleetRepos(): Chainable<Element>;
+      checkGitRepoStatus(repoName: string, bundles?: string, resources?: string): Chainable<Element>;
     }
   }
 }

@@ -33,13 +33,13 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
   cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
 
   if (gitAuthType === 'http') {
-    cy.typeValue('Username', userOrPublicKey);
-    cy.typeValue('Password', pwdOrPrivateKey);
+    cy.typeValue('Username', userOrPublicKey, false,  false );
+    cy.typeValue('Password', pwdOrPrivateKey, false,  false );
   }
   else if (gitAuthType === 'ssh') {
     // Ugly implementation needed because 'typeValue' does not work here
-    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey);
-    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey);
+    cy.get('textarea.no-resize.no-ease').eq(0).focus().clear().type(userOrPublicKey, { log: false });
+    cy.get('textarea.no-resize.no-ease').eq(1).focus().clear().type(pwdOrPrivateKey, { log: false });
   }
 });
 
@@ -59,6 +59,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
   }
   cy.clickButton('Next');
+  cy.get('button.btn').contains('Previous').should('be.visible');
 })
 
 // 3 dots menu selection
@@ -121,7 +122,31 @@ Cypress.Commands.add('deleteAll', () => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
-      cy.get('.btn').contains('Delete').should('not.exist');
+      cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
+      cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
     };
   });
+});
+
+// Command to delete all repos pressent in Fleet local and default
+Cypress.Commands.add('deleteAllFleetRepos', () => {
+  cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
+  cy.fleetNamespaceToggle('fleet-local')
+  cy.deleteAll();
+  cy.fleetNamespaceToggle('fleet-default')
+  cy.deleteAll();
+});
+
+// Check Git repo deployment status
+Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
+  cy.verifyTableRow(0, 'Active', repoName);
+  cy.contains(repoName).click()
+  cy.get('.primaryheader > h1').contains(repoName).should('be.visible')
+  cy.log(`Checking ${bundles} Bundles and ${resources} Resources`)
+  if (bundles) {
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(0).contains(` ${bundles} Bundles ready `, { timeout: 30000 }).should('be.visible')
+  }
+  if (resources) {
+    cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
+  }
 });
