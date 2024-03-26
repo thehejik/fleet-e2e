@@ -45,7 +45,7 @@ Cypress.Commands.add('gitRepoAuth', (gitAuthType, userOrPublicKey, pwdOrPrivateK
 
 
 // Command add Fleet Git Repository
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources }) => {
   cy.clickButton('Add Repository');
   cy.contains('Git Repo:').should('be.visible');
   cy.typeValue('Name', repoName);
@@ -57,6 +57,12 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
   }
   if (gitAuthType) {
     cy.gitRepoAuth(gitAuthType, userOrPublicKey, pwdOrPrivateKey);
+  }
+  // Check the checkbox of keepResources if option 'yes' is given.
+  // After checked check-box, `keepResources: true` is set
+  // in the GitRepo YAML.
+  if (keepResources === 'yes') {
+    cy.get('.checkbox-outer-container.check').contains('Always Keep Resources').click();
   }
   cy.clickButton('Next');
   cy.get('button.btn').contains('Previous').should('be.visible');
@@ -96,16 +102,16 @@ Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
   cy.get('.top > .ns-filter').click({ force: true });
   // Typing in filter for better targeting the namespece
-  cy.get('div.ns-input').should('exist').type(namespaceName);
+  cy.get('div.ns-input').should('exist').clear().type(namespaceName);
   cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
   cy.get('.icon.icon-chevron-up').click({ force: true });
 })
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
-     cypressLib.burgerMenuToggle();
-     cypressLib.accesMenu(firstAccessMenu);
-     cypressLib.accesMenu(secondAccessMenu);
+      cypressLib.burgerMenuToggle();
+      cypressLib.accesMenu(firstAccessMenu);
+      cypressLib.accesMenu(secondAccessMenu);
 });
 
 // Fleet namespace toggle
@@ -117,13 +123,17 @@ Cypress.Commands.add('fleetNamespaceToggle', (toggleOption='local') => {
 // Command to delete all rows if check box and delete button are present
 // Note: This function may be substituted by 'cypressLib.deleteAllResources' 
 // when hardcoded texts present can be parameterized
-Cypress.Commands.add('deleteAll', () => {
+Cypress.Commands.add('deleteAll', (fleetCheck=true) => {
   cy.get('body').then(($body) => {
     if ($body.text().includes('Delete')) {
       cy.get('[width="30"] > .checkbox-outer-container.check').click();
       cy.get('.btn').contains('Delete').click({ctrlKey: true});
       cy.get('.btn', { timeout: 20000 }).contains('Delete').should('not.exist');
-      cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
+      if (fleetCheck === true) {
+        cy.contains('No repositories have been added', { timeout: 20000 }).should('be.visible')
+      } else {
+        cy.contains('There are no rows to show.', { timeout: 20000 }).should('be.visible')
+      }
     };
   });
 });
@@ -149,4 +159,26 @@ Cypress.Commands.add('checkGitRepoStatus', (repoName, bundles, resources) => {
   if (resources) {
     cy.get('div.fleet-status', { timeout: 30000 }).eq(1).contains(` ${resources} Resources ready `, { timeout: 30000 }).should('be.visible')
   }
+});
+
+// Check deployed application status (present or not)
+// TODO: Expand this command to check application on false state as well
+Cypress.Commands.add('checkApplicationStatus', (appNamespace, appName, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.nameSpaceMenuToggle(appNamespace);
+  cy.clickNavMenu(['Workloads', 'Pods']);
+  cy.contains('tr.main-row[data-testid="sortable-table-0-row"]').should('not.be.empty', { timeout: 25000 });
+  cy.get(`table > tbody > tr.main-row[data-testid="sortable-table-0-row"]`)
+    .children({ timeout: 300000 })
+    .should('contain.text', appName);
+});
+
+// Delete the leftover applications
+Cypress.Commands.add('deleteApplicationDeployment', (appNamespace, clusterName='local') => {
+  cypressLib.burgerMenuToggle();
+  cypressLib.accesMenu(clusterName);
+  cy.nameSpaceMenuToggle(appNamespace);
+  cy.clickNavMenu(['Workloads', 'Deployments']);
+  cy.deleteAll({fleetCheck: false});
 });
