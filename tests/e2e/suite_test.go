@@ -80,28 +80,28 @@ var _ = BeforeSuite(func() {
 	if rancherVersion != "" {
 		s := strings.Split(rancherVersion, "/")
 
+		rancherVersion = ""
+		rancherHeadVersion = ""
+		rancherChannel = ""
+
 		switch s[0] {
 		case "prime":
 			rancherChannel = s[0]
 			if len(s) > 1 {
 				rancherVersion = s[1]
-				rancherHeadVersion = ""
 			} else {
 				FailWithReport("Rancher version is missing.")
 			}
-		case "prime-devel", "devel":
+		case "prime-devel", "devel", "devel-prime":
 			rancherChannel = s[0]
 			if len(s) > 1 {
-				rancherVersion = ""
 				rancherHeadVersion = s[1]
 			} else {
 				FailWithReport("Rancher head version is missing.")
 			}
 		default:
-			// Default values
 			rancherChannel = "latest"
 			rancherVersion = s[0]
-			rancherHeadVersion = ""
 		}
 	}
 })
