@@ -143,8 +143,8 @@ github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81P
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.8.0 h1:pSgiaMZlXftHpm5L7V1+rVB+AZJydKsMxsQBIJw4PKk=
-github.com/thehejik/ele-testhelpers v1.0.1 h1:anqT0/+1t0P5v7sseTINncI0efoTpB/dvY39F/1mg4U=
-github.com/thehejik/ele-testhelpers v1.0.1/go.mod h1:F5UXO6vjwzVtFrtunNbmTnXJFCwohaCUB2/Mm/AgW6A=
+github.com/thehejik/ele-testhelpers v1.0.3 h1:pQtRUswvFoXq6xHuHYGd5bhVDh9B8G4HjoQsbXggcOg=
+github.com/thehejik/ele-testhelpers v1.0.3/go.mod h1:kBhVnM7L6XFO/CzJqRVZ3fbhp2gVXwZFnmG5EVLozOk=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
