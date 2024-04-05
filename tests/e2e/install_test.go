@@ -179,6 +179,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			checkList := [][]string{
 				{"cattle-fleet-system", "app=fleet-controller"},
+				{"cattle-provisioning-capi-system", "cluster.x-k8s.io/provider=cluster-api"},
 			}
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
