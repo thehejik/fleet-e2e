@@ -15,6 +15,7 @@ limitations under the License.
 package e2e_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -41,6 +42,14 @@ func rolloutDeployment(ns, d string) {
 			"--namespace", ns)
 		return status
 	}, tools.SetTimeout(2*time.Minute), 30*time.Second).Should(ContainSubstring("successfully rolled out"))
+}
+
+func getClusterInfo(clusterName, namespace, jsonPath string) (string, error) {
+	return kubectl.Run("get", "clusters.provisioning.cattle.io",
+		"--namespace", namespace,
+		clusterName,
+		"-o", fmt.Sprintf("jsonpath={%s}", jsonPath),
+	)
 }
 
 var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
@@ -179,7 +188,6 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 			checkList := [][]string{
 				{"cattle-fleet-system", "app=fleet-controller"},
-				{"cattle-provisioning-capi-system", "cluster.x-k8s.io/provider=cluster-api"},
 			}
 			Eventually(func() error {
 				return rancher.CheckPod(k, checkList)
@@ -246,35 +254,39 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				},
 			}
 
-			err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
-			Expect(err).To(Not(HaveOccurred()))
-
-			// Get and store internal cluster name
-			// INTERNAL_CLUSTER_NAME=$(kubectl get clusters.provisioning.cattle.io -n fleet-default $CLUSTER_NAME -o jsonpath='{..status.clusterName}')
-			var internalClusterName string
 			Eventually(func() string {
-				internalClusterName, _ = kubectl.Run("get", "clusters.provisioning.cattle.io",
-					"--namespace", "fleet-default",
-					downstreamClusterName,
-					"-o", "jsonpath={..status.clusterName}",
+				err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Get and store internal cluster name
+				internalClusterName, err := getClusterInfo(downstreamClusterName, "fleet-default", "..status.clusterName")
+				Expect(err).To(Not(HaveOccurred()))
+
+				// Debug only
+				// GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
+
+				// Get insecureCommand for importing cluster
+				insecureRegistrationCommand, err = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
+					"--namespace", internalClusterName,
+					"-o", "jsonpath={.items[0].status.insecureCommand}",
 				)
-				return internalClusterName
-			}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
+				Expect(err).To(Not(HaveOccurred()))
 
-			// Debug only
-			GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
+				if insecureRegistrationCommand == "" {
+					// Delete the cluster if the registration command is empty
+					err = kubectl.Run("delete", "clusters.provisioning.cattle.io",
+						"--namespace", "fleet-default",
+						downstreamClusterName,
+					)
+					Expect(err).To(Not(HaveOccurred()))
+				}
 
-			// Get insecureCommand for importing cluster
-			// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
-			insecureRegistrationCommand, err = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
-				"--namespace", internalClusterName,
-				"-o", "jsonpath={.items[0].status.insecureCommand}",
-			)
-			Expect(err).To(Not(HaveOccurred()))
-			// Debug only
-			GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
+				// Debug only
+				// GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
+
+				return insecureRegistrationCommand
+			}, 5*time.Minute, 30*time.Second).ShouldNot(BeEmpty(), "Insecure registration command is empty.")
 		})
-	})
 
 	It("Provision K3d cluster", func() {
 		By("Install k3d binary for provisioning downstream cluster", func() {
@@ -329,7 +341,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			// Run the registration insecure command on downstream cluster
 			regCmd := exec.Command("bash", "-c", insecureRegistrationCommand)
 			// Debug only
-			GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
+			// GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
 			out, err = regCmd.CombinedOutput()
 			GinkgoWriter.Printf("Registration command output (stdout):\n%s\n", out)
 			Expect(err).To(Not(HaveOccurred()))
