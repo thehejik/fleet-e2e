@@ -261,7 +261,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			}, tools.SetTimeout(2*time.Minute), 10*time.Second).ShouldNot(BeEmpty())
 
 			// Debug only
-			// GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
+			GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
 
 			// Get insecureCommand for importing cluster
 			// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
@@ -271,7 +271,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			)
 			Expect(err).To(Not(HaveOccurred()))
 			// Debug only
-			// GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
+			GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
 		})
 	})
 
@@ -328,7 +328,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 			// Run the registration insecure command on downstream cluster
 			regCmd := exec.Command("bash", "-c", insecureRegistrationCommand)
 			// Debug only
-			// GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
+			GinkgoWriter.Printf("Registration command is:\n%s\n", insecureRegistrationCommand)
 			out, err = regCmd.CombinedOutput()
 			GinkgoWriter.Printf("Registration command output (stdout):\n%s\n", out)
 			Expect(err).To(Not(HaveOccurred()))
