@@ -254,7 +254,11 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				},
 			}
 
+			count := 1
 			Eventually(func() string {
+				GinkgoWriter.Printf("Applying resources for downstream cluster %s, loop %d\n", downstreamClusterName, count)
+				count++
+
 				err := k.ApplyYAML("fleet-default", downstreamClusterName, clusterDefinitionYaml)
 				Expect(err).To(Not(HaveOccurred()))
 
@@ -275,8 +279,9 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 				if insecureRegistrationCommand == "" {
 					// Delete the cluster if the registration command is empty
+					GinkgoWriter.Printf("Cluster for import doesn't return insecureRegistrationCommand, deleting it\n")
 					_, err = kubectl.Run("delete", "clusters.provisioning.cattle.io",
-						"--namespace", "fleet-default",
+						"--namespace", "fleet-default", "--wait",
 						downstreamClusterName,
 					)
 					Expect(err).To(Not(HaveOccurred()))
@@ -286,7 +291,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// GinkgoWriter.Printf("InsecureCommand for cluster %s is: %s\n", downstreamClusterName, insecureRegistrationCommand)
 
 				return insecureRegistrationCommand
-			}, 5*time.Minute, 30*time.Second).ShouldNot(BeEmpty(), "Insecure registration command is empty.")
+			}, tools.SetTimeout(5*time.Minute), 30*time.Second).ShouldNot(BeEmpty(), "Insecure registration command is empty.")
 		})
 	})
 
