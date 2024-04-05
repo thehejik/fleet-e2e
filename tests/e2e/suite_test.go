@@ -78,30 +78,17 @@ var _ = BeforeSuite(func() {
 
 	// Extract Rancher Manager channel/version to install
 	if rancherVersion != "" {
+		// Split rancherVersion and reset it
 		s := strings.Split(rancherVersion, "/")
-
 		rancherVersion = ""
-		rancherHeadVersion = ""
-		rancherChannel = ""
 
-		switch s[0] {
-		case "prime":
-			rancherChannel = s[0]
-			if len(s) > 1 {
-				rancherVersion = s[1]
-			} else {
-				FailWithReport("Rancher version is missing.")
-			}
-		case "prime-devel", "devel", "devel-prime":
-			rancherChannel = s[0]
-			if len(s) > 1 {
-				rancherHeadVersion = s[1]
-			} else {
-				FailWithReport("Rancher head version is missing.")
-			}
-		default:
-			rancherChannel = "latest"
-			rancherVersion = s[0]
+		// Get needed informations
+		rancherChannel = s[0]
+		if len(s) > 1 {
+			rancherVersion = s[1]
+		}
+		if len(s) > 2 {
+			rancherHeadVersion = s[2]
 		}
 	}
 })

@@ -13,8 +13,8 @@ on:
         default: true
         type: boolean
       rancher_version:
-        description: Rancher version as 'devel-prime/2.7', 'devel/2.7', 'prime/2.7.12[-rc3]' or '2.8.2[-rc3]'
-        default: devel/2.7
+        description: Rancher version 'channel/version/head_version', channel = <latest|prime|prime-devel>', version = '<latest|devel|2.7.11[-rc2]>', head_version = '2.7'
+        default: latest/devel/2.7
         type: string
         required: true
       upstream_cluster_version:
