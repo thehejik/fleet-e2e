@@ -275,7 +275,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 
 				if insecureRegistrationCommand == "" {
 					// Delete the cluster if the registration command is empty
-					err = kubectl.Run("delete", "clusters.provisioning.cattle.io",
+					_, err = kubectl.Run("delete", "clusters.provisioning.cattle.io",
 						"--namespace", "fleet-default",
 						downstreamClusterName,
 					)
