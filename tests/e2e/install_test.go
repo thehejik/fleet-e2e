@@ -266,6 +266,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				// GinkgoWriter.Printf("Internal cluster name for cluster %s is: %s\n", downstreamClusterName, internalClusterName)
 
 				// Get insecureCommand for importing cluster
+				// INSECURE_COMMAND=$(kubectl get ClusterRegistrationToken.management.cattle.io -n $INTERNAL_CLUSTER_NAME -o jsonpath='{.items[0].status.insecureCommand}')
 				insecureRegistrationCommand, err = kubectl.Run("get", "ClusterRegistrationToken.management.cattle.io",
 					"--namespace", internalClusterName,
 					"-o", "jsonpath={.items[0].status.insecureCommand}",
@@ -287,6 +288,7 @@ var _ = Describe("E2E - Install Rancher Manager", Label("install"), func() {
 				return insecureRegistrationCommand
 			}, 5*time.Minute, 30*time.Second).ShouldNot(BeEmpty(), "Insecure registration command is empty.")
 		})
+	})
 
 	It("Provision K3d cluster", func() {
 		By("Install k3d binary for provisioning downstream cluster", func() {
