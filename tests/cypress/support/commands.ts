@@ -85,12 +85,22 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitA
 });
 
 // 3 dots menu selection
-Cypress.Commands.add('open3dotsMenu', (name, selection) => {
+Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) => {
   // Open 3 dots button
   cy.contains('tr.main-row', name).within(() => {
     cy.get('.icon.icon-actions', { timeout: 5000 }).click();
   });
-  if (selection) {
+
+  if (checkNotInMenu === true) {
+    cy.get('.list-unstyled.menu > li').each(($el) => {
+        if ($el.text() != selection) {
+        cy.log(`Cannot perform action with specified value "${selection}" since it is not present. Current Menu is: "${$el.text()}"`);
+        cy.get('ul.list-unstyled.menu').contains(selection).should('not.exist')
+      }        
+    });
+  }
+  
+  else if (selection) {
     // Open edit config and select option
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).should('be.visible');
     cy.get('.list-unstyled.menu > li > span', { timeout: 15000 }).contains(selection).click({ force: true });
