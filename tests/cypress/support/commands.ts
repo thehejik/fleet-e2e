@@ -127,17 +127,24 @@ Cypress.Commands.add('verifyTableRow', (rowNumber, expectedText1, expectedText2)
 Cypress.Commands.add('nameSpaceMenuToggle', (namespaceName) => {
   cy.get('.top > .ns-filter').should('be.visible');
   cy.get('.top > .ns-filter').click({ force: true });
-  // Typing in filter for better targeting the namespece
-  cy.get('div.ns-input').should('exist').clear().type(namespaceName);
-  cy.get('.ns-dropdown-menu', { timeout: 5000 }).contains(new RegExp("^" + namespaceName + "$", "g"), { matchCase: true }).should('be.visible').click();
+  cy.get('div.ns-item').contains(namespaceName).scrollIntoView()
+  cy.get('div.ns-item').contains(namespaceName).click()
   cy.get('div.ns-dropdown.ns-open > i.icon.icon-chevron-up').click({ force: true });
 })
 
+// Command to filter text in searchbox
+Cypress.Commands.add('filterInSearchBox', (filterText) => {
+  cy.get('input[type="search"]').should('be.visible').clear().type(filterText)
+});
+
 // Go to specific Sub Menu from Access Menu
-Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu) => {
+Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
       cypressLib.burgerMenuToggle();
       cypressLib.accesMenu(firstAccessMenu);
       cypressLib.accesMenu(secondAccessMenu);
+      if (clickOption) {
+        cy.get('nav.side-nav.default-side-nav').contains(clickOption).should('be.visible').click();
+      };
 });
 
 // Fleet namespace toggle
