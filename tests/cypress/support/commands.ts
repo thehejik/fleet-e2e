@@ -27,12 +27,16 @@ Cypress.Commands.add('addPathOnGitRepoCreate', (path) => {
   cy.get('input[placeholder="e.g. /directory/in/your/repo"]').type(path);
 })
 
-Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPublicKey, pwdOrPrivateKey, ) => {
+Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex ) => {
   cy.contains(`${gitOrHelmAuth} Authentication`).click()
 
 
   // Select the Git auth method
   cy.get('div.option-kind-highlighted', { timeout: 15000 }).contains(gitAuthType, { matchCase: false }).should('be.visible').click();
+
+  if (helmUrlRegex) {
+    cy.typeValue('Helm Repos (URL Regex)', helmUrlRegex, false,  false );
+  }
 
   if (gitAuthType === 'http') {
     cy.typeValue('Username', userOrPublicKey, false,  false );
@@ -48,7 +52,7 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'
-Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth,gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local',editConfig=false }) => {
+Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, keepResources, correctDrift, fleetNamespace='fleet-local', editConfig=false, helmUrlRegex }) => {
   cy.accesMenuSelection('Continuous Delivery', 'Git Repos');
   if (editConfig === true) {
     cy.fleetNamespaceToggle(fleetNamespace);
@@ -71,7 +75,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
     cy.addPathOnGitRepoCreate(path);
   }
   if (gitAuthType) {
-    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey);
+    cy.gitRepoAuth(gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex);
   }
   // Check the checkbox of keepResources if option 'yes' is given.
   // After checked check-box, `keepResources: true` is set
