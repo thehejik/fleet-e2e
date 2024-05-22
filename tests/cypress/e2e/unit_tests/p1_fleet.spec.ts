@@ -270,6 +270,16 @@ if (!/\/2\.7/.test(Cypress.env('rancher_version'))) {
   });
 }
 
+describe('Import yaml', { tags: '@p1'}, () => {
+  qase(108,
+    it.only("Fleet-9999: Test import yaml file in local cluster", { tags: '@fleet-108' }, () => {
+      cy.importYaml({ clusterName: 'local', yamlFilePath: 'assets/helm-server-with-auth-and-data.yaml' });
+      cy.checkApplicationStatus('helm-');
+      cy.deleteApplicationDeployment();
+    })
+  )
+});
+
 describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () => {
   const repoName = 'default-cluster-helmrepo-63'
   const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
@@ -282,6 +292,10 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
   var helmUrlRegex = 'http.*'
 
   beforeEach(() => {
+      // This has to be exposed on local cluster which can use ingress
+      var ingressRancherHost = Cypress.config('baseUrl')?.replace(/https?:\/\/([^/]+)\/.*/, '$1');
+      cy.log(ingressRancherHost as string) // Add type assertion here
+      cy.wait(20000)
       const repoName = 'helm-registries'
       const repoUrl = 'https://github.com/thehejik/fleet-examples.git'
       const branch = 'main'
@@ -293,7 +307,7 @@ describe('Private Helm Repository tests (helmRepoURLRegex)', { tags: '@p1'}, () 
   });
 
   qase(63,
-    it.only("Fleet-63: Test private helm registries with \"helmRepoURLRegex and helmSecretName\" parameters", { tags: '@fleet-63' }, () => {;
+    it("Fleet-63: Test private helm registries with \"helmRepoURLRegex and helmSecretName\" parameters", { tags: '@fleet-63' }, () => {;
       // Positive test using matching regex http.*
       cy.fleetNamespaceToggle('fleet-default');
       cy.addFleetGitRepo({ repoName, repoUrl, branch, path, gitOrHelmAuth, gitAuthType, userOrPublicKey, pwdOrPrivateKey, helmUrlRegex });

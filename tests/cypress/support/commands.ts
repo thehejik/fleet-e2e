@@ -16,6 +16,7 @@ limitations under the License.
 
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
+import { clusterName } from '../e2e/unit_tests/p0_fleet.spec';
 
 // Generic commands
 
@@ -49,6 +50,18 @@ Cypress.Commands.add('gitRepoAuth', (gitOrHelmAuth='Git', gitAuthType, userOrPub
   }
 });
 
+Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
+  cypressLib.burgerMenuToggle();
+  cy.get(`button[data-testid="menu-cluster-${clusterName}"]`).click();
+  cy.get('header').find('button').filter(':has(i.icon-upload)').click();
+  cy.log(`Uploading YAML file: ${yamlFilePath}`);
+  
+    cy.readFile(yamlFilePath).then((content) => {
+    cy.get('pre.CodeMirror-line').invoke('text', content)
+  });
+  
+  cy.get('button[data-testid="import-yaml-import-action"]').click();
+});
 
 // Command add and edit Fleet Git Repository
 // TODO: Rename this command name to 'addEditFleetGitRepo'

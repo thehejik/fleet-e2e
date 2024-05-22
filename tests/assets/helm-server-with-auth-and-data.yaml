@@ -84,6 +84,6 @@ data:
         - name: app
           version: 0.1.0
           urls:
-            - http://nginx-service.default.svc.cluster.local:80/app-0.1.0.tgz
+            - app-0.1.0.tgz
 binaryData:
   app-0.1.0.tgz: H4sIFAAAAAAA/ykAK2FIUjBjSE02THk5NWIzVjBkUzVpWlM5Nk9WVjZNV2xqYW5keVRRbz1IZWxtAOyVsWrDMBCGPesp7gXinBxHAW8lS6G0Q4fuV/vSilrOYSmBEvLuRSkJOEMztE4o6Fskn43t4/7/F4lMl+/Uh/yTXJuNAiKiKcvDiojnK+pylunSFNqY2SLWtV7MywxwnN8ZsvGB+gx//a3z5v4JJPaFe2/XXQXbQpHI6RJznaNq2Ne9lXAo3cE9tw7qKBhYrXt42Lxy33FgrzpyXAGJqO3wDbduMfED0f9bajfsxwuAS/6P+6H/iwKL5P9rEOcf2ElLgf20Xncr++ZI/lQMF/PfzM/mXxqDaf7XYJD/Wn3YrqlgeZDBI4lyHKihQJUC+A743Q7yZ26ZPOdP5Bj2+8lJNur4rCcnLU9qVx238c7Edt42nE6ERCKRuD1fAQAA//9ZTKl3AA4AAA==

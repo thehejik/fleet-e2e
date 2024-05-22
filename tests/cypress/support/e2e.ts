@@ -35,6 +35,7 @@ declare global {
       checkApplicationStatus(appName: string, clusterName?: string): Chainable<Element>;
       deleteApplicationDeployment(clusterName?: string): Chainable<Element>;
       modifyDeployedApplication(appName: string, clusterName?: string): Chainable<Element>;
+      importYaml(clusterName: string, yamlFilePath: string): Chainable<Element>;
     }
   }
 }
