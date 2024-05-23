@@ -16,7 +16,7 @@ limitations under the License.
 
 import 'cypress-file-upload';
 import * as cypressLib from '@rancher-ecp-qa/cypress-library';
-import { clusterName } from '../e2e/unit_tests/p0_fleet.spec';
+// import jsyaml from 'js-yaml';
 
 // Generic commands
 
@@ -54,13 +54,25 @@ Cypress.Commands.add('importYaml', ({ clusterName, yamlFilePath }) => {
   cypressLib.burgerMenuToggle();
   cy.get(`button[data-testid="menu-cluster-${clusterName}"]`).click();
   cy.get('header').find('button').filter(':has(i.icon-upload)').click();
-  cy.log(`Uploading YAML file: ${yamlFilePath}`);
-  
-    cy.readFile(yamlFilePath).then((content) => {
-    cy.get('pre.CodeMirror-line').invoke('text', content)
-  });
-  
+  cy.get('div.modal-container').contains('Import YAML').should('be.visible');
+
+  // Insert file content into the CodeMirror editor
+  cy.readFile(yamlFilePath).then((content) => {
+    cy.get('.CodeMirror').then((codeMirrorElement) => {
+      const cm = codeMirrorElement[0].CodeMirror;
+      cm.setValue(content);
+    });
+  })
   cy.get('button[data-testid="import-yaml-import-action"]').click();
+  cy.get('div.card-container').contains(/Applied \d+ Resources/).should('be.visible');
+
+  // Check if there is a column with age which contains a number
+  cy.get('[data-testid^="sortable-cell-"] .live-date').each(($el) => {
+    cy.wrap($el).contains(/\d+/, { timeout: 60000 });
+  }).then(() => {
+    // All elements defined, click Close button
+    cy.get('button[data-testid="import-yaml-close"]').click();
+  });
 });
 
 // Command add and edit Fleet Git Repository
