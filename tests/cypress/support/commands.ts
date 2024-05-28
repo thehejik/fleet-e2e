@@ -90,7 +90,7 @@ Cypress.Commands.add('addFleetGitRepo', ({ repoName, repoUrl, branch, path, gitO
 Cypress.Commands.add('open3dotsMenu', (name, selection, checkNotInMenu=false) => {
   // Open 3 dots button
   cy.contains('tr.main-row', name).within(() => {
-    cy.get('.icon.icon-actions', { timeout: 5000 }).click();
+    cy.get('.icon.icon-actions', { timeout: 5000 }).click({ force: true });
   });
 
   if (checkNotInMenu === true) {
@@ -153,16 +153,16 @@ Cypress.Commands.add('filterInSearchBox', (filterText) => {
 
 // Go to specific Sub Menu from Access Menu
 Cypress.Commands.add('accesMenuSelection', (firstAccessMenu='Continuous Delivery',secondAccessMenu, clickOption) => {
-      cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
-      cy.contains(firstAccessMenu).should('be.visible')
-      cypressLib.accesMenu(firstAccessMenu);
-      if (secondAccessMenu) {
-        cy.contains(secondAccessMenu).should('be.visible')
-        cypressLib.accesMenu(secondAccessMenu);
-      };
-      if (clickOption) {
-        cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
-      };
+  cypressLib.burgerMenuToggle( {animationDistanceThreshold: 10} );
+  cy.contains(firstAccessMenu).should('be.visible')
+  cypressLib.accesMenu(firstAccessMenu);
+  if (secondAccessMenu) {
+    cy.contains(secondAccessMenu).should('be.visible')
+    cypressLib.accesMenu(secondAccessMenu);
+  };
+  if (clickOption) {
+    cy.get('nav.side-nav').contains(clickOption).should('be.visible').click();
+  };
 });
 
 // Fleet namespace toggle
@@ -247,7 +247,7 @@ Cypress.Commands.add('modifyDeployedApplication', (appName, clusterName='local')
 });
 
 // Create Role Template (User & Authentication)
-Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='No', verbs, resources, apiGroups, nonResourcesURLs}) => {
+Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUserDefault='no', rules}) => {
 
   // // Access to user & authentication menu and create desired role template
   cy.accesMenuSelection('Users & Authentication', 'Role Templates');
@@ -258,26 +258,23 @@ Cypress.Commands.add('createRoleTemplate', ({roleType='Global', roleName, newUse
   cy.typeValue('Name', roleName);
 
   // Add new user default
-  if (newUserDefault === 'Yes') {
+  if (newUserDefault === 'yes') {
     cy.get('span[aria-label="Yes: Default role for new users"]').click();
   }
   
-  // Addition of resources and verbs linked to resources
-  if (resources) {
-    resources.forEach((resource, i) => {
+    // Addition of resources and verbs linked to resources
+    // Each rule is an object with 2 keys: resource and verbs
+    rules.forEach((rule: { resource: string, verbs: string[] }, i) => {
       // Iterate over Resource cells and add 1 resource
       cy.get(`input.vs__search`).eq(2 * i + 1).click();
-      cy.contains(resource, { matchCase: false }).should("exist").click();
+      cy.contains(rule.resource, { matchCase: false }).should("exist").click();
       cy.clickButton("Add Resource");
 
-      if (verbs) {
-        verbs.forEach((verb) => {
+        rule.verbs.forEach((verb) => {
           cy.get(`input.vs__search`).eq(2 * i).click();
           cy.get(`ul.vs__dropdown-menu > li`).contains(verb).should("exist").click();
         });
-      }
     });
-  }
 
   // "Hack" to get the button to be clickable
   cy.get('button.role-link').last().click()
@@ -294,5 +291,7 @@ Cypress.Commands.add('assignRoleToUser', (userName, roleName) => {
   cy.get(`span[aria-label='${roleName}']`).should('be.visible').click();
 
   cy.clickButton('Save');
-  cy.verifyTableRow(0, 'Active', userName);
+  // Sortering by Age so first row is the desired user
+  cy.contains('Age').should('be.visible').click();
+  cy.verifyTableRow(0,'Active', userName);
 })
