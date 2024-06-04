@@ -30,7 +30,7 @@
     "cypress-multi-reporters": "^1.6.4",
     "cypress-plugin-tab": "^1.0.5",
     "cypress-qase-reporter": "1.4.3",
-    "dotenv": "^10.0.0",
+    "dotenv": "^16.4.5",
     "typescript": "^5.4.5"
   },
   "devDependencies": {
